@@ -93,11 +93,14 @@ def index():
         return jsonify({"msg": "Username already exists."}), 409
     if User.query.filter_by(email=email).first():
         return jsonify({"msg": "Email already exists."}), 409
+    
+    if len(password) < 8:
+        return jsonify({"msg": "password length must be at least 8 characters"}), 401
 
     # Create user
     new_user = User(name=username, email=email)
-    new_user.hash_pass(password)  # make sure this stores a hash, not plaintext
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify({"msg": f"{new_user.name} added to database"}), 201
+    if new_user.set_password(password):  # make sure this stores a hash, not plaintext
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({"msg": f"{new_user.name} added to database"}), 201
+    return jsonify({"msg": "password doesn't meet complexityy rules"}), 401
