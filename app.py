@@ -29,7 +29,7 @@ def index():
 
         user = User.query.filter_by(name=username).first()
         if not user:
-            return jsonify({"msg": "No user with provided credentials"}), 404
+            return jsonify({"msg": "No user with provided credentials"}), 401
 
         # Locked?
         if getattr(user, "failed_attempt", 0) >= MAX_FAILED:
@@ -93,14 +93,25 @@ def index():
         return jsonify({"msg": "Username already exists."}), 409
     if User.query.filter_by(email=email).first():
         return jsonify({"msg": "Email already exists."}), 409
-    
+
     if len(password) < 8:
-        return jsonify({"msg": "password length must be at least 8 characters"}), 401
+        return jsonify({"msg": "password length must be at least 8 characters"}), 400
 
     # Create user
     new_user = User(name=username, email=email)
-    if new_user.set_password(password):  # make sure this stores a hash, not plaintext
+    if new_user.set_password(password):
         db.session.add(new_user)
         db.session.commit()
         return jsonify({"msg": f"{new_user.name} added to database"}), 201
-    return jsonify({"msg": "password doesn't meet complexityy rules"}), 401
+    return (
+        jsonify(
+            {
+                "msg": "password doesn't meet complexity rules. Password must contain at least 1 upper case letter (A-Z), 1 lower case letter(a-z), 1 number(0-9), and 1 special character(!@#$%...)"
+            }
+        ),
+        400,
+    )
+    
+# @app.post("/admin")
+# def index():
+#     pass
