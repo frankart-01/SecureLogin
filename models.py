@@ -2,6 +2,7 @@ import uuid
 from flask_sqlalchemy import SQLAlchemy
 from config import bcrypt, app
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import UUID
 import re
 
 db = SQLAlchemy()
@@ -11,7 +12,7 @@ db.init_app(app)
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(
         db.String(36),
         unique=True,
@@ -50,7 +51,7 @@ class User(db.Model):
 class Admin(db.Model):
     __tablename__ = "admins"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer,primary_key=True, autoincrement=True)
 
     # Foreign key references users.user_id (which is a String UUID)
     user_id = db.Column(
@@ -70,7 +71,7 @@ class Admin(db.Model):
     last_login = db.Column(db.DateTime, default=datetime.utcnow)
 
     created_by = db.Column(
-        db.Integer, db.ForeignKey("admins.id"), nullable=True
+        db.Integer, db.ForeignKey("admins.user_id"), nullable=True
     )  # which admin created this admin
 
     is_superadmin = db.Column(
